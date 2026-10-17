@@ -1,0 +1,46 @@
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-logo">
+      <i class="fa-solid fa-film text-accent"></i> I<span>Movies</span>
+    </a>
+
+    <form action="/movies" method="GET" class="navbar-search">
+      <i class="fa-solid fa-magnifying-glass icon"></i>
+      <input type="text" name="q" placeholder="Search movies, genre, actor..." autocomplete="off">
+    </form>
+
+    <nav class="navbar-links">
+      <a href="/" class="navbar-link <%= currentPath === '/' ? 'active' : '' %>">Home</a>
+      <a href="/movies" class="navbar-link <%= currentPath === '/movies' ? 'active' : '' %>">Movies</a>
+      <% if (user) { %>
+        <a href="/my-bookings" class="navbar-link <%= currentPath === '/my-bookings' ? 'active' : '' %>">
+          <i class="fa-solid fa-ticket"></i> My Bookings
+        </a>
+        <% if (user.role === 'admin') { %>
+          <a href="/admin" class="navbar-link <%= currentPath.startsWith('/admin') ? 'active' : '' %> text-accent">
+            <i class="fa-solid fa-shield-halved"></i> Admin
+          </a>
+        <% } %>
+        <div class="navbar-user">
+          <div class="navbar-avatar"><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></div>
+          <span><%= user.name ? user.name.split(' ')[0] : 'Account' %></span>
+          <i class="fa-solid fa-chevron-down text-muted" style="font-size: 0.75rem;"></i>
+          <div class="user-dropdown">
+            <div style="padding: 6px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px;">
+              <div style="font-weight: 700; font-size: 0.85rem;"><%= user.name %></div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);"><%= user.email %></div>
+            </div>
+            <a href="/my-bookings" class="dropdown-item"><i class="fa-solid fa-ticket"></i> My Bookings</a>
+            <% if (user.role === 'admin') { %>
+              <a href="/admin" class="dropdown-item"><i class="fa-solid fa-gauge"></i> Admin Dashboard</a>
+            <% } %>
+            <a href="/logout" class="dropdown-item danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</a>
+          </div>
+        </div>
+      <% } else { %>
+        <a href="/login" class="btn btn-outline btn-sm">Sign In</a>
+        <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+      <% } %>
+    </nav>
+  </div>
+</header>

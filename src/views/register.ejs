@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="padding: 50px 0;">
+  <div class="form-card fade-up">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <i class="fa-solid fa-user-plus text-accent" style="font-size: 2.2rem; margin-bottom: 12px;"></i>
+      <h1 class="form-title">Create Account</h1>
+      <p class="form-subtitle">Join IMovies to book cinema tickets with live seat availability.</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+
+    <form action="/register" method="POST" id="registerForm">
+      <div class="form-group">
+        <label class="form-label" for="name">Full Name</label>
+        <input type="text" id="name" name="name" class="form-input" placeholder="John Doe" required autocomplete="name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="phone">Phone Number (optional)</label>
+        <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 000-0000" autocomplete="tel">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-input" placeholder="Min. 8 characters, 1 number & 1 letter" required autocomplete="new-password">
+        <div class="form-hint">At least 8 characters with letters and numbers.</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 10px;">
+        <i class="fa-solid fa-ticket"></i> Sign Up &amp; Get Started
+      </button>
+    </form>
+
+    <div class="form-divider">OR</div>
+
+    <div style="text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+      Already registered? <a href="/login" style="color: var(--accent); font-weight: 700;">Sign in here</a>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,150 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="padding-top: 30px;">
+  <div style="margin-bottom: 24px;">
+    <a href="/movies/<%= showtime.movie ? showtime.movie._id : '' %>" class="btn btn-ghost btn-sm" style="margin-bottom: 12px;">
+      <i class="fa-solid fa-arrow-left"></i> Back to Movie
+    </a>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 1.8rem; font-weight: 900;"><%= showtime.movie ? showtime.movie.title : 'Movie Showtime' %></h1>
+        <p class="text-muted" style="font-size: 0.9rem;">
+          <i class="fa-solid fa-location-dot text-accent"></i> <%= showtime.theater ? showtime.theater.name : 'Theater' %>
+          • <strong><%= showtime.screen ? showtime.screen.screenName : 'Screen 1' %></strong>
+          • <%= new Date(showtime.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) %> at <%= new Date(showtime.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) %>
+          • <span class="genre-tag"><%= showtime.format || '2D' %></span>
+        </p>
+      </div>
+
+      <!-- Lock Countdown Timer (hidden until seats are locked) -->
+      <div id="lockTimerBadge" style="display: none; background: rgba(229, 9, 20, 0.15); border: 1px solid var(--border-accent); padding: 8px 16px; border-radius: 8px; font-weight: 700; color: var(--accent);">
+        <i class="fa-regular fa-clock"></i> Seats Locked: <span id="timerCountdown">10:00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="split-layout">
+    <!-- ─── Interactive Seat Map ─────────────────────────────────────────────── -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px 24px;">
+      <!-- Cinema Screen Projection Curved Bar -->
+      <div class="screen-label"></div>
+      <div class="screen-text"><i class="fa-solid fa-tv"></i> All eyes this way — Cinema Screen</div>
+
+      <!-- Seat Legend -->
+      <div class="seat-legend">
+        <div class="legend-item">
+          <div class="legend-box" style="background: #1e2a1e; border: 1.5px solid #2a4a2a;"></div>
+          <span>Available</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: var(--accent); border: 1.5px solid var(--accent-hover);"></div>
+          <span>Selected</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: #2a2a1e; border: 1.5px solid #4a4a1e;"></div>
+          <span>Reserved / Locked</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-box" style="background: #1e1e2a; border: 1.5px solid #2a2a4a;"></div>
+          <span>Sold Out</span>
+        </div>
+      </div>
+
+      <!-- Seat Map Grid -->
+      <div class="seat-map-wrap">
+        <%
+          // Group seats by category and then by row
+          const categoryGroups = {};
+          if (seats && seats.length > 0) {
+            seats.forEach(s => {
+              const cat = s.category || 'Standard';
+              if (!categoryGroups[cat]) categoryGroups[cat] = {};
+              if (!categoryGroups[cat][s.row]) categoryGroups[cat][s.row] = [];
+              categoryGroups[cat][s.row].push(s);
+            });
+          }
+        %>
+
+        <% if (seats && seats.length > 0) { %>
+          <% Object.entries(categoryGroups).forEach(([category, rows]) => { %>
+            <div class="category-label"><%= category %> Class</div>
+            <% Object.entries(rows).forEach(([rowLetter, rowSeats]) => { %>
+              <div class="seat-row">
+                <span class="seat-row-label"><%= rowLetter %></span>
+                <% rowSeats.sort((a,b) => a.column - b.column).forEach(seat => { %>
+                  <%
+                    let statusClass = 'available';
+                    if (seat.status === 'booked') statusClass = 'booked';
+                    else if (seat.status === 'locked') statusClass = 'locked';
+                  %>
+                  <button
+                    type="button"
+                    class="seat <%= statusClass %>"
+                    data-seat-id="<%= seat._id %>"
+                    data-seat-number="<%= seat.seatNumber %>"
+                    data-price="<%= seat.price %>"
+                    data-category="<%= seat.category %>"
+                    title="<%= seat.seatNumber %> — <%= seat.category %> ($<%= seat.price %>)"
+                    <%= (statusClass === 'booked' || statusClass === 'locked') ? 'disabled' : '' %>
+                  >
+                    <%= seat.column %>
+                  </button>
+                <% }); %>
+                <span class="seat-row-label" style="text-align: left;"><%= rowLetter %></span>
+              </div>
+            <% }); %>
+          <% }); %>
+        <% } else { %>
+          <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+            Seat layout is being initialized for this auditorium.
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- ─── Checkout Summary Sidebar ─────────────────────────────────────────── -->
+    <aside>
+      <div class="booking-summary">
+        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 16px;">Booking Summary</h3>
+
+        <div class="summary-row">
+          <span class="text-muted">Selected Seats (<span id="seatCount">0</span>)</span>
+          <span id="selectedSeatPills" class="selected-seats-display" style="margin: 0; justify-content: flex-end;">
+            <em style="color: var(--text-muted); font-size: 0.8rem;">None chosen</em>
+          </span>
+        </div>
+
+        <div class="summary-row">
+          <span class="text-muted">Ticket Subtotal</span>
+          <span style="font-weight: 600;">$<span id="subtotalAmount">0.00</span></span>
+        </div>
+
+        <div class="summary-row">
+          <span class="text-muted">Convenience Fee &amp; Tax (10%)</span>
+          <span style="font-weight: 600;">$<span id="taxAmount">0.00</span></span>
+        </div>
+
+        <div class="summary-row total">
+          <span>Total Payable</span>
+          <span>$<span id="totalAmount">0.00</span></span>
+        </div>
+
+        <div id="bookingAlert" class="alert alert-error" style="display: none; margin-top: 16px; font-size: 0.82rem;"></div>
+
+        <button id="btnProceedBooking" class="btn btn-primary btn-lg btn-block" style="margin-top: 20px;" disabled>
+          <i class="fa-solid fa-lock"></i> Lock Seats &amp; Pay
+        </button>
+
+        <p class="text-muted" style="font-size: 0.76rem; text-align: center; margin-top: 14px; line-height: 1.5;">
+          <i class="fa-solid fa-shield-check"></i> Seats are locked for 10 minutes once you proceed. Instant booking confirmation via email.
+        </p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+  window.SHOWTIME_ID = "<%= showtime._id %>";
+</script>
+<%- include('partials/footer') %>

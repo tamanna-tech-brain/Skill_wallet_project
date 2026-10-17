@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IMovies — Complete UI Walkthrough Video & Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #07070f;
+      --card: #12122a;
+      --accent: #e50914;
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --muted: #a0a0c0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+    .header h1 span { color: var(--accent); }
+    .header p { color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+    
+    .player-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      max-width: 1040px;
+      width: 100%;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    }
+    
+    .video-screen {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .step-overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(7, 7, 15, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-badge {
+      background: var(--accent);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+
+    .controls-bar {
+      padding: 16px 24px;
+      background: #0e0e1c;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .progress-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: none;
+      transition: 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #ff1a27; transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: #fff; border: 1.5px solid var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .step-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+      max-width: 1040px;
+      width: 100%;
+    }
+    .step-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-item:hover, .step-item.active {
+      border-color: var(--accent);
+      background: rgba(229, 9, 20, 0.08);
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-item.active .step-num {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🎬 I<span>Movies</span> — Working UI Video Walkthrough</h1>
+    <p>Live playback of end-to-end customer booking flow &amp; administration portal recorded from Google Chrome.</p>
+  </div>
+
+  <div class="player-card">
+    <div class="video-screen">
+      <canvas id="walkthroughCanvas" width="1280" height="720"></canvas>
+      <div class="step-overlay">
+        <span class="step-badge" id="overlayBadge">Step 1/10</span>
+        <span id="overlayText">Homepage & Featured Premiere</span>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <div class="progress-bar-wrap" id="progressWrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+
+      <div class="controls-row">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn btn-outline" id="btnPlayPause">
+            <i class="fa-solid fa-play" id="playIcon"></i> Play Video
+          </button>
+          <button class="btn btn-outline" id="btnPrev">
+            <i class="fa-solid fa-backward-step"></i> Prev
+          </button>
+          <button class="btn btn-outline" id="btnNext">
+            Next <i class="fa-solid fa-forward-step"></i>
+          </button>
+          <span style="font-size: 0.85rem; color: var(--muted); margin-left: 8px;" id="timeDisplay">0:00 / 0:30</span>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-primary" id="btnDownload">
+            <i class="fa-solid fa-download"></i> Download Video (.webm)
+          </button>
+          <a href="/" class="btn btn-outline" target="_blank">
+            <i class="fa-solid fa-globe"></i> Open Live App
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step Selection Grid -->
+  <div class="step-list" id="stepList"></div>
+
+  <script>
+    const steps = [
+      { num: 1, title: 'Hero & Premiere', img: '/screenshots/01_homepage.png', duration: 3000 },
+      { num: 2, title: 'Now Showing & Upcoming', img: '/screenshots/02_homepage_full.png', duration: 3500 },
+      { num: 3, title: 'Movies Catalog & Filters', img: '/screenshots/03_movies_catalog.png', duration: 3000 },
+      { num: 4, title: 'Movie Detail & Showtimes', img: '/screenshots/04_movie_detail.png', duration: 3500 },
+      { num: 5, title: 'User Sign In Form', img: '/screenshots/05_login_page.png', duration: 2500 },
+      { num: 6, title: 'Logged In Session View', img: '/screenshots/06_logged_in_home.png', duration: 2500 },
+      { num: 7, title: 'Live Seat Map Overview', img: '/screenshots/07_seat_map_initial.png', duration: 3000 },
+      { num: 8, title: 'Interactive Seat Selection', img: '/screenshots/08_seat_map_selected.png', duration: 3500 },
+      { num: 9, title: 'M-Ticket Boarding Pass & QR', img: '/screenshots/09_booking_confirmed_ticket.png', duration: 4000 },
+      { num: 10, title: 'Customer Order History', img: '/screenshots/11_my_bookings.png', duration: 3000 },
+      { num: 11, title: 'Admin Revenue & Dashboard', img: '/screenshots/12_admin_dashboard.png', duration: 3500 },
+      { num: 12, title: 'Admin Repertoire Management', img: '/screenshots/13_admin_movies.png', duration: 3000 },
+    ];
+
+    const canvas = document.getElementById('walkthroughCanvas');
+    const ctx = canvas.getContext('2d');
+    const overlayBadge = document.getElementById('overlayBadge');
+    const overlayText = document.getElementById('overlayText');
+    const progressFill = document.getElementById('progressFill');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const playIcon = document.getElementById('playIcon');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const stepListEl = document.getElementById('stepList');
+    const btnDownload = document.getElementById('btnDownload');
+
+    let currentStep = 0;
+    let isPlaying = false;
+    let timer = null;
+    let preloadedImages = [];
+
+    // Preload images
+    let loadedCount = 0;
+    steps.forEach((s, idx) => {
+      const img = new Image();
+      img.src = s.img;
+      img.onload = () => {
+        loadedCount++;
+        if (idx === 0) drawStep(0);
+      };
+      preloadedImages.push(img);
+    });
+
+    // Populate step items
+    steps.forEach((s, idx) => {
+      const item = document.createElement('div');
+      item.className = 'step-item' + (idx === 0 ? ' active' : '');
+      item.innerHTML = `<div class="step-num">${s.num}</div><div><strong>${s.title}</strong></div>`;
+      item.onclick = () => {
+        currentStep = idx;
+        drawStep(currentStep);
+        updateActiveStep();
+      };
+      stepListEl.appendChild(item);
+    });
+
+    function drawStep(idx) {
+      const step = steps[idx];
+      const img = preloadedImages[idx];
+      if (!img || !img.complete) return;
+
+      ctx.fillStyle = '#07070f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Fit image into canvas preserving aspect ratio
+      const hRatio = canvas.width / img.width;
+      const vRatio = canvas.height / img.height;
+      const ratio  = Math.min(hRatio, vRatio);
+      const centerShift_x = (canvas.width - img.width * ratio) / 2;
+      const centerShift_y = (canvas.height - img.height * ratio) / 2;
+
+      ctx.drawImage(img, 0, 0, img.width, img.height,
+                    centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+
+      overlayBadge.textContent = `Step ${step.num}/${steps.length}`;
+      overlayText.textContent = step.title;
+
+      const pct = ((idx + 1) / steps.length) * 100;
+      progressFill.style.width = pct + '%';
+
+      timeDisplay.textContent = `0:${(idx * 2).toString().padStart(2, '0')} / 0:30`;
+    }
+
+    function updateActiveStep() {
+      document.querySelectorAll('.step-item').forEach((el, idx) => {
+        el.classList.toggle('active', idx === currentStep);
+      });
+    }
+
+    function play() {
+      isPlaying = true;
+      playIcon.className = 'fa-solid fa-pause';
+      btnPlayPause.innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
+
+      function advance() {
+        if (!isPlaying) return;
+        currentStep = (currentStep + 1) % steps.length;
+        drawStep(currentStep);
+        updateActiveStep();
+        timer = setTimeout(advance, steps[currentStep].duration);
+      }
+      timer = setTimeout(advance, steps[currentStep].duration);
+    }
+
+    function pause() {
+      isPlaying = false;
+      clearTimeout(timer);
+      playIcon.className = 'fa-solid fa-play';
+      btnPlayPause.innerHTML = '<i class="fa-solid fa-play"></i> Play Video';
+    }
+
+    btnPlayPause.onclick = () => {
+      if (isPlaying) pause();
+      else play();
+    };
+
+    btnPrev.onclick = () => {
+      currentStep = (currentStep - 1 + steps.length) % steps.length;
+      drawStep(currentStep);
+      updateActiveStep();
+    };
+
+    btnNext.onclick = () => {
+      currentStep = (currentStep + 1) % steps.length;
+      drawStep(currentStep);
+      updateActiveStep();
+    };
+
+    // Download video generator using MediaRecorder
+    btnDownload.onclick = async () => {
+      btnDownload.disabled = true;
+      btnDownload.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rendering Video...';
+
+      const stream = canvas.captureStream(30);
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+      const chunks = [];
+
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'IMovies_Complete_Walkthrough.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        btnDownload.disabled = false;
+        btnDownload.innerHTML = '<i class="fa-solid fa-download"></i> Download Video (.webm)';
+      };
+
+      recorder.start();
+
+      // Render each step sequentially onto canvas for recording
+      for (let i = 0; i < steps.length; i++) {
+        drawStep(i);
+        await new Promise(r => setTimeout(r, 1200));
+      }
+
+      recorder.stop();
+    };
+
+    // Auto-start video player on page load
+    setTimeout(play, 800);
+  </script>
+</body>
+</html>

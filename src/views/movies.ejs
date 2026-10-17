@@ -1,0 +1,94 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+  <div class="page-header">
+    <h1>All Movies</h1>
+    <p>Browse current theatrical releases, upcoming blockbusters, and filter by your favorite genres.</p>
+  </div>
+
+  <!-- ─── Filter Form ────────────────────────────────────────────────────────── -->
+  <form action="/movies" method="GET" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 24px; margin-bottom: 36px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; flex: 1;">
+      <!-- Status Tabs -->
+      <div style="display: flex; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 3px;">
+        <a href="/movies?status=now_showing" style="padding: 7px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; <%= (query.status === 'now_showing' || !query.status) ? 'background: var(--accent); color: #fff;' : 'color: var(--text-secondary);' %>">Now Showing</a>
+        <a href="/movies?status=upcoming" style="padding: 7px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; <%= query.status === 'upcoming' ? 'background: var(--accent); color: #fff;' : 'color: var(--text-secondary);' %>">Upcoming</a>
+      </div>
+
+      <!-- Genre Filter -->
+      <select name="genre" onchange="this.form.submit()" style="background: var(--bg-secondary); border: 1.5px solid var(--border); color: var(--text-primary); padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer;">
+        <option value="">All Genres</option>
+        <% const genres = ['Action', 'Sci-Fi', 'Drama', 'Adventure', 'Thriller', 'Comedy', 'Animation', 'Horror', 'Romance']; %>
+        <% genres.forEach(g => { %>
+          <option value="<%= g %>" <%= query.genre === g ? 'selected' : '' %>><%= g %></option>
+        <% }); %>
+      </select>
+
+      <!-- Language Filter -->
+      <select name="language" onchange="this.form.submit()" style="background: var(--bg-secondary); border: 1.5px solid var(--border); color: var(--text-primary); padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer;">
+        <option value="">All Languages</option>
+        <% const langs = ['English', 'Spanish', 'Hindi', 'French', 'Japanese', 'Korean', 'German']; %>
+        <% langs.forEach(l => { %>
+          <option value="<%= l %>" <%= query.language === l ? 'selected' : '' %>><%= l %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <!-- Search keyword inside catalog -->
+    <div style="display: flex; gap: 8px; align-items: center; min-width: 260px;">
+      <input type="text" name="q" value="<%= query.q || '' %>" placeholder="Filter by title..." class="form-input" style="padding: 9px 14px; font-size: 0.85rem;">
+      <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-filter"></i> Apply</button>
+      <% if (query.genre || query.language || query.q || query.status) { %>
+        <a href="/movies" class="btn btn-ghost btn-sm" title="Clear Filters"><i class="fa-solid fa-xmark"></i></a>
+      <% } %>
+    </div>
+  </form>
+
+  <!-- ─── Movies Grid ────────────────────────────────────────────────────────── -->
+  <% if (movies && movies.length > 0) { %>
+    <div class="movie-grid">
+      <% movies.forEach(movie => { %>
+        <div class="movie-card" onclick="window.location.href='/movies/<%= movie._id %>'">
+          <div class="movie-badge <%= movie.status === 'now_showing' ? 'badge-showing' : 'badge-upcoming' %>">
+            <%= movie.status === 'now_showing' ? 'Live' : 'Upcoming' %>
+          </div>
+          <% if (movie.posterUrl) { %>
+            <img src="<%= movie.posterUrl %>" alt="<%= movie.title %>" class="movie-poster" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';">
+          <% } else { %>
+            <div class="movie-poster-placeholder">
+              <i class="fa-solid fa-film text-muted"></i>
+            </div>
+          <% } %>
+          <div class="movie-card-body">
+            <h3 class="movie-card-title"><%= movie.title %></h3>
+            <div class="movie-card-meta">
+              <span class="movie-genre"><%= (movie.genre && movie.genre.slice(0, 2).join(', ')) || 'Cinema' %></span>
+              <span class="movie-rating"><i class="fa-solid fa-star"></i> <%= (movie.rating && movie.rating.imdb) || '8.0' %></span>
+            </div>
+            <div class="movie-card-actions">
+              <% if (movie.status === 'now_showing') { %>
+                <a href="/movies/<%= movie._id %>" class="btn btn-primary btn-sm btn-block" onclick="event.stopPropagation();">
+                  <i class="fa-solid fa-ticket"></i> Book Now
+                </a>
+              <% } else { %>
+                <a href="/movies/<%= movie._id %>" class="btn btn-outline btn-sm btn-block" onclick="event.stopPropagation();">
+                  View Info
+                </a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 80px 0; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+      <i class="fa-solid fa-magnifying-glass" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 16px;"></i>
+      <h3 style="margin-bottom: 8px;">No Movies Matched Your Criteria</h3>
+      <p class="text-muted" style="margin-bottom: 24px;">Try loosening your genre, language, or search keyword filters.</p>
+      <a href="/movies" class="btn btn-primary">Reset All Filters</a>
+    </div>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

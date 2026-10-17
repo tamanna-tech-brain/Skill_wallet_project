@@ -1,0 +1,78 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+  <div class="page-header">
+    <h1>My Movie Bookings</h1>
+    <p>View your past orders, access tickets, or manage seat reservations.</p>
+  </div>
+
+  <% if (bookings && bookings.length > 0) { %>
+    <div style="max-width: 860px; margin: 0 auto;">
+      <% bookings.forEach(booking => { %>
+        <div class="booking-card">
+          <div class="booking-poster">
+            <% if (booking.movie && booking.movie.posterUrl) { %>
+              <img src="<%= booking.movie.posterUrl %>" alt="<%= booking.movie.title %>" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';">
+            <% } else { %>
+              <div class="movie-poster-placeholder" style="height: 100%;">
+                <i class="fa-solid fa-film text-muted"></i>
+              </div>
+            <% } %>
+          </div>
+
+          <div class="booking-info">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+              <span class="booking-ref">REF: #<%= booking.bookingRef %></span>
+              <span class="booking-status status-<%= booking.status %>"><%= booking.status %></span>
+            </div>
+
+            <h3 class="booking-title"><%= booking.movie ? booking.movie.title : 'Movie' %></h3>
+
+            <div class="booking-meta-row">
+              <span><i class="fa-solid fa-location-dot text-accent"></i> <%= booking.theater ? booking.theater.name : 'Multiplex' %></span>
+              <span>
+                <i class="fa-regular fa-calendar"></i>
+                <%= booking.showtime && booking.showtime.startTime ? new Date(booking.showtime.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Date' %>
+              </span>
+              <span>
+                <i class="fa-regular fa-clock"></i>
+                <%= booking.showtime && booking.showtime.startTime ? new Date(booking.showtime.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Time' %>
+              </span>
+              <span><i class="fa-solid fa-couch"></i> Seats: <strong><%= booking.seatNumbers.join(', ') %></strong></span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px;">
+              <div>
+                <span class="text-muted" style="font-size: 0.8rem;">Amount: </span>
+                <strong style="color: #27ae60; font-size: 1.05rem;">$<%= Number(booking.totalAmount).toFixed(2) %></strong>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <a href="/bookings/<%= booking._id %>/confirm" class="btn btn-outline btn-sm">
+                  <i class="fa-solid fa-qrcode"></i> View Ticket
+                </a>
+                <% if (booking.status === 'confirmed') { %>
+                  <form action="/bookings/<%= booking._id %>/cancel" method="POST" onsubmit="return confirm('Are you sure you want to cancel this booking? Refund will be processed back to original method.')">
+                    <button type="submit" class="btn btn-ghost btn-sm" style="color: #e74c3c;">
+                      <i class="fa-solid fa-ban"></i> Cancel
+                    </button>
+                  </form>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 70px 0; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); max-width: 600px; margin: 0 auto;">
+      <i class="fa-solid fa-ticket-simple text-muted" style="font-size: 3rem; margin-bottom: 16px;"></i>
+      <h3 style="margin-bottom: 8px;">No Bookings Found</h3>
+      <p class="text-muted" style="margin-bottom: 24px;">You haven't reserved any cinema tickets yet. Explore movies now showing!</p>
+      <a href="/movies" class="btn btn-primary">Browse Now Showing</a>
+    </div>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

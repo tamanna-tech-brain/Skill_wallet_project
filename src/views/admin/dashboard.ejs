@@ -1,0 +1,135 @@
+<%- include('../partials/header') %>
+
+<div class="admin-layout">
+  <!-- ─── Sidebar ──────────────────────────────────────────────────────────── -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <i class="fa-solid fa-film text-accent"></i> I<span>Movies</span>
+      <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500; margin-top: 4px;">MANAGEMENT PORTAL</div>
+    </div>
+    <a href="/admin" class="admin-link active">
+      <i class="fa-solid fa-chart-line"></i> Dashboard
+    </a>
+    <a href="/admin/movies" class="admin-link">
+      <i class="fa-solid fa-film"></i> Movies Catalog
+    </a>
+    <a href="/admin/movies/new" class="admin-link">
+      <i class="fa-solid fa-plus"></i> Add New Movie
+    </a>
+    <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+      <a href="/" class="admin-link">
+        <i class="fa-solid fa-globe"></i> View Live Site
+      </a>
+      <a href="/logout" class="admin-link" style="color: #e74c3c;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- ─── Main Content Area ────────────────────────────────────────────────── -->
+  <main class="admin-main">
+    <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1>Cinema Operations Dashboard</h1>
+        <p>Live metrics across users, box office revenue, ticket bookings, and catalog status.</p>
+      </div>
+      <div>
+        <a href="/admin/movies/new" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Add Movie
+        </a>
+      </div>
+    </div>
+
+    <!-- ─── Stat Cards ─────────────────────────────────────────────────────── -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="stat-label">Total Revenue</span>
+          <i class="fa-solid fa-dollar-sign text-accent stat-icon"></i>
+        </div>
+        <div class="stat-value text-accent">$<%= Number(stats.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
+        <div style="font-size: 0.75rem; color: #27ae60;"><i class="fa-solid fa-arrow-up"></i> Live box office gross</div>
+      </div>
+
+      <div class="stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="stat-label">Confirmed Bookings</span>
+          <i class="fa-solid fa-ticket-simple text-gold stat-icon"></i>
+        </div>
+        <div class="stat-value"><%= Number(stats.totalBookings || 0).toLocaleString() %></div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Completed reservations</div>
+      </div>
+
+      <div class="stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="stat-label">Active Movies</span>
+          <i class="fa-solid fa-video text-accent stat-icon"></i>
+        </div>
+        <div class="stat-value"><%= Number(stats.totalMovies || 0).toLocaleString() %></div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">In screening catalog</div>
+      </div>
+
+      <div class="stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="stat-label">Registered Patrons</span>
+          <i class="fa-solid fa-users stat-icon" style="color: #3498db;"></i>
+        </div>
+        <div class="stat-value"><%= Number(stats.totalUsers || 0).toLocaleString() %></div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Verified customer accounts</div>
+      </div>
+    </div>
+
+    <!-- ─── Recent Bookings Table ──────────────────────────────────────────── -->
+    <div style="margin-top: 36px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.3rem; font-weight: 800;">Recent Confirmed Bookings</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ref #</th>
+              <th>Customer</th>
+              <th>Movie</th>
+              <th>Seats</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (recentBookings && recentBookings.length > 0) { %>
+              <% recentBookings.forEach(b => { %>
+                <tr>
+                  <td><code style="color: var(--accent);"><%= b.bookingRef %></code></td>
+                  <td>
+                    <div style="font-weight: 600;"><%= b.user ? b.user.name : 'Guest' %></div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);"><%= b.user ? b.user.email : '' %></div>
+                  </td>
+                  <td><strong><%= b.movie ? b.movie.title : 'Movie' %></strong></td>
+                  <td><%= b.seatNumbers ? b.seatNumbers.join(', ') : '—' %></td>
+                  <td style="color: #27ae60; font-weight: 700;">$<%= Number(b.totalAmount).toFixed(2) %></td>
+                  <td><span class="booking-status status-<%= b.status %>"><%= b.status %></span></td>
+                  <td style="color: var(--text-muted); font-size: 0.8rem;">
+                    <%= new Date(b.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                  No bookings recorded yet.
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+  <!-- ─── Movie Detail Hero ──────────────────────────────────────────────────── -->
+  <div class="movie-detail-hero">
+    <div class="movie-detail-poster">
+      <% if (movie.posterUrl) { %>
+        <img src="<%= movie.posterUrl %>" alt="<%= movie.title %>" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';">
+      <% } else { %>
+        <div class="movie-poster-placeholder" style="height: 380px;">
+          <i class="fa-solid fa-film text-muted"></i>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="movie-detail-info">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+        <span class="movie-badge <%= movie.status === 'now_showing' ? 'badge-showing' : 'badge-upcoming' %>" style="position: static;">
+          <%= movie.status === 'now_showing' ? 'Now Showing' : 'Coming Soon' %>
+        </span>
+        <% if (movie.formats) { %>
+          <% movie.formats.forEach(fmt => { %>
+            <span class="genre-tag" style="background: rgba(255,255,255,0.06); border-color: var(--border); color: var(--text-primary);"><%= fmt %></span>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <h1 class="movie-detail-title"><%= movie.title %></h1>
+
+      <div class="movie-detail-meta">
+        <span><i class="fa-solid fa-star text-gold"></i> <strong><%= (movie.rating && movie.rating.imdb) || '8.4' %></strong> / 10 IMDb</span>
+        <span><i class="fa-regular fa-clock"></i> <%= movie.duration %> min</span>
+        <span><i class="fa-solid fa-language"></i> <%= (movie.language && movie.language.join(', ')) || 'English' %></span>
+        <span><i class="fa-regular fa-calendar"></i> <%= movie.releaseDate ? new Date(movie.releaseDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA' %></span>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+        <% if (movie.genre) { %>
+          <% movie.genre.forEach(g => { %>
+            <span class="genre-tag"><%= g %></span>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <p class="movie-detail-desc"><%= movie.description %></p>
+
+      <% if (movie.director) { %>
+        <div style="margin-bottom: 14px; font-size: 0.9rem;">
+          <span class="text-muted">Director:</span> <strong><%= movie.director %></strong>
+        </div>
+      <% } %>
+
+      <% if (movie.cast && movie.cast.length > 0) { %>
+        <div style="margin-bottom: 24px;">
+          <span class="text-muted" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px;">Cast &amp; Starring</span>
+          <div class="cast-grid">
+            <% movie.cast.forEach(actor => { %>
+              <span class="cast-chip"><i class="fa-solid fa-user-astronaut text-muted"></i> <%= actor %></span>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (movie.trailerUrl) { %>
+        <div>
+          <a href="<%= movie.trailerUrl %>" target="_blank" class="btn btn-outline">
+            <i class="fa-solid fa-play text-accent"></i> Watch Official Trailer
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ─── Showtimes Section ──────────────────────────────────────────────────── -->
+  <section class="section" id="showtimes" style="border-top: 1px solid var(--border); padding-top: 40px;">
+    <div class="section-header">
+      <h2 class="section-title">Available Theaters &amp; Showtimes</h2>
+    </div>
+
+    <% if (showtimes && showtimes.length > 0) { %>
+      <!-- Group showtimes by theater -->
+      <%
+        const theaterGroups = {};
+        showtimes.forEach(st => {
+          const tId = st.theater ? st.theater._id.toString() : 'general';
+          if (!theaterGroups[tId]) {
+            theaterGroups[tId] = {
+              theater: st.theater,
+              shows: []
+            };
+          }
+          theaterGroups[tId].shows.push(st);
+        });
+      %>
+
+      <% Object.values(theaterGroups).forEach(group => { %>
+        <div class="theater-section" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+            <div>
+              <h3 class="theater-name-label"><i class="fa-solid fa-location-dot text-accent"></i> <%= group.theater ? group.theater.name : 'Cinema Multiplex' %></h3>
+              <p class="theater-addr"><%= group.theater && group.theater.address ? (group.theater.address.street + ', ' + group.theater.address.city) : 'Premium Cinema Hall' %></p>
+            </div>
+            <span class="genre-tag" style="background: rgba(39, 174, 96, 0.15); color: #27ae60; border-color: rgba(39, 174, 96, 0.3);">
+              <i class="fa-solid fa-shield-halved"></i> Verified Venue
+            </span>
+          </div>
+
+          <div class="showtime-grid">
+            <% group.shows.forEach(show => { %>
+              <%
+                const d = new Date(show.startTime);
+                const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const avail = show.availableSeats || 0;
+              %>
+              <a href="/showtimes/<%= show._id %>/seats" class="showtime-card">
+                <div class="showtime-time"><%= timeStr %></div>
+                <div class="showtime-meta"><%= dateStr %></div>
+                <div class="showtime-meta" style="color: var(--accent); font-weight: 700;"><%= show.format || '2D' %> • <%= show.language || 'English' %></div>
+                <% if (avail > 15) { %>
+                  <div class="showtime-avail"><i class="fa-solid fa-circle-check"></i> <%= avail %> seats left</div>
+                <% } else if (avail > 0) { %>
+                  <div class="showtime-avail low"><i class="fa-solid fa-triangle-exclamation"></i> Only <%= avail %> seats!</div>
+                <% } else { %>
+                  <div class="showtime-avail sold"><i class="fa-solid fa-ban"></i> Sold Out</div>
+                <% } %>
+              </a>
+            <% }); %>
+          </div>
+        </div>
+      <% }); %>
+
+    <% } else { %>
+      <div style="text-align: center; padding: 50px 0; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+        <i class="fa-regular fa-calendar-xmark text-muted" style="font-size: 2.5rem; margin-bottom: 12px;"></i>
+        <h3 style="margin-bottom: 8px;">No Showtimes Scheduled Yet</h3>
+        <p class="text-muted" style="margin-bottom: 20px;">Showtimes for this movie are being scheduled by theater operators. Please check back shortly.</p>
+        <a href="/movies" class="btn btn-outline">Check Other Movies</a>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

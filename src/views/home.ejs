@@ -1,0 +1,165 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<!-- ─── Hero Section ─────────────────────────────────────────────────────────── -->
+<% const heroMovie = (nowShowing && nowShowing.length > 0) ? nowShowing[0] : null; %>
+<section class="hero">
+  <div class="hero-bg"></div>
+  <% if (heroMovie && heroMovie.posterUrl) { %>
+    <img src="<%= heroMovie.posterUrl %>" alt="<%= heroMovie.title %>" class="hero-bg-img">
+  <% } %>
+  <div class="hero-overlay"></div>
+  <div class="container hero-content">
+    <div class="hero-badge">
+      <i class="fa-solid fa-fire"></i> Featured Premiere
+    </div>
+    <h1 class="hero-title"><%= heroMovie ? heroMovie.title : 'Welcome to IMovies' %></h1>
+    <div class="hero-meta">
+      <% if (heroMovie && heroMovie.rating) { %>
+        <span class="rating"><i class="fa-solid fa-star"></i> <%= heroMovie.rating.imdb %> / 10</span>
+      <% } %>
+      <% if (heroMovie && heroMovie.duration) { %>
+        <span><i class="fa-regular fa-clock"></i> <%= heroMovie.duration %> min</span>
+      <% } %>
+      <% if (heroMovie && heroMovie.formats && heroMovie.formats.length > 0) { %>
+        <span class="text-accent" style="font-weight: 700;"><%= heroMovie.formats.join(' • ') %></span>
+      <% } %>
+    </div>
+    <p class="hero-desc">
+      <%= heroMovie ? (heroMovie.description.length > 180 ? heroMovie.description.substring(0, 180) + '...' : heroMovie.description) : 'Experience unmatched visual immersion with IMAX laser projection and Dolby Atmos multidimensional soundscapes. Pick your favorite seats in real time.' %>
+    </p>
+    <div class="hero-actions">
+      <% if (heroMovie) { %>
+        <a href="/movies/<%= heroMovie._id %>" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-ticket"></i> Book Tickets Now
+        </a>
+        <% if (heroMovie.trailerUrl) { %>
+          <a href="<%= heroMovie.trailerUrl %>" target="_blank" class="btn btn-outline btn-lg">
+            <i class="fa-solid fa-play"></i> Watch Trailer
+          </a>
+        <% } %>
+      <% } else { %>
+        <a href="/movies" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-compass"></i> Explore All Movies
+        </a>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Now Showing Section ────────────────────────────────────────────────── -->
+<main class="container">
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Now Showing in Theaters</h2>
+      <a href="/movies?status=now_showing" class="see-all">
+        View All <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <% if (nowShowing && nowShowing.length > 0) { %>
+      <div class="movie-grid">
+        <% nowShowing.forEach(movie => { %>
+          <div class="movie-card" onclick="window.location.href='/movies/<%= movie._id %>'">
+            <div class="movie-badge badge-showing">Live</div>
+            <% if (movie.posterUrl) { %>
+              <img src="<%= movie.posterUrl %>" alt="<%= movie.title %>" class="movie-poster" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60';">
+            <% } else { %>
+              <div class="movie-poster-placeholder">
+                <i class="fa-solid fa-film text-muted"></i>
+              </div>
+            <% } %>
+            <div class="movie-card-body">
+              <h3 class="movie-card-title"><%= movie.title %></h3>
+              <div class="movie-card-meta">
+                <span class="movie-genre"><%= (movie.genre && movie.genre.slice(0, 2).join(', ')) || 'Cinema' %></span>
+                <span class="movie-rating"><i class="fa-solid fa-star"></i> <%= (movie.rating && movie.rating.imdb) || '8.2' %></span>
+              </div>
+              <div class="movie-card-actions">
+                <a href="/movies/<%= movie._id %>" class="btn btn-primary btn-sm btn-block" onclick="event.stopPropagation();">
+                  <i class="fa-solid fa-ticket"></i> Book Now
+                </a>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div style="text-align: center; padding: 60px 0; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+        <i class="fa-solid fa-clapperboard" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 16px;"></i>
+        <h3 style="margin-bottom: 8px;">No Movies Currently Active</h3>
+        <p class="text-muted" style="margin-bottom: 20px;">Check back soon or explore our upcoming blockbuster lineup.</p>
+        <a href="/movies" class="btn btn-outline">Browse Catalog</a>
+      </div>
+    <% } %>
+  </section>
+
+  <!-- ─── Upcoming Section ───────────────────────────────────────────────────── -->
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">Coming Soon to Cinemas</h2>
+      <a href="/movies?status=upcoming" class="see-all">
+        View All <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <% if (upcoming && upcoming.length > 0) { %>
+      <div class="movie-grid">
+        <% upcoming.forEach(movie => { %>
+          <div class="movie-card" onclick="window.location.href='/movies/<%= movie._id %>'">
+            <div class="movie-badge badge-upcoming">Upcoming</div>
+            <% if (movie.posterUrl) { %>
+              <img src="<%= movie.posterUrl %>" alt="<%= movie.title %>" class="movie-poster" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=60';">
+            <% } else { %>
+              <div class="movie-poster-placeholder">
+                <i class="fa-solid fa-hourglass-half text-muted"></i>
+              </div>
+            <% } %>
+            <div class="movie-card-body">
+              <h3 class="movie-card-title"><%= movie.title %></h3>
+              <div class="movie-card-meta">
+                <span class="movie-genre"><%= (movie.genre && movie.genre.slice(0, 2).join(', ')) || 'Action' %></span>
+                <span class="text-muted" style="font-size: 0.76rem;">
+                  <i class="fa-regular fa-calendar"></i> <%= movie.releaseDate ? new Date(movie.releaseDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBA' %>
+                </span>
+              </div>
+              <div class="movie-card-actions">
+                <a href="/movies/<%= movie._id %>" class="btn btn-outline btn-sm btn-block" onclick="event.stopPropagation();">
+                  Details &amp; Trailer
+                </a>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <p class="text-muted">Stay tuned for upcoming season premieres!</p>
+    <% } %>
+  </section>
+
+  <!-- ─── Experience Perks ───────────────────────────────────────────────────── -->
+  <section class="section" style="border-top: 1px solid var(--border);">
+    <div class="section-header">
+      <h2 class="section-title">Why Book with IMovies</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px;">
+        <i class="fa-solid fa-couch text-accent" style="font-size: 2rem; margin-bottom: 16px;"></i>
+        <h3 style="font-size: 1.15rem; margin-bottom: 8px;">Live Dynamic Seat Reservation</h3>
+        <p class="text-muted" style="font-size: 0.88rem; line-height: 1.6;">Atomic temporary seat locks guarantee no overlapping bookings or double tickets across concurrent viewers.</p>
+      </div>
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px;">
+        <i class="fa-solid fa-ticket-simple text-gold" style="font-size: 2rem; margin-bottom: 16px;"></i>
+        <h3 style="font-size: 1.15rem; margin-bottom: 8px;">Instant M-Ticket &amp; QR Codes</h3>
+        <p class="text-muted" style="font-size: 0.88rem; line-height: 1.6;">Skip cinema booth queues with digital pass confirmation, fast check-in barcodes, and automatic booking receipts.</p>
+      </div>
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px;">
+        <i class="fa-solid fa-volume-high text-accent" style="font-size: 2rem; margin-bottom: 16px;"></i>
+        <h3 style="font-size: 1.15rem; margin-bottom: 8px;">Premium Formats Supported</h3>
+        <p class="text-muted" style="font-size: 0.88rem; line-height: 1.6;">Pick showtimes filtered by IMAX 3D, Dolby Atmos, 4DX, and ScreenX across prime auditoriums and multiplexes.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

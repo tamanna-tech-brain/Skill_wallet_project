@@ -1,0 +1,45 @@
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <i class="fa-solid fa-film text-accent"></i> I<span>Movies</span>
+        </div>
+        <p class="footer-desc">
+          IMovies is the state-of-the-art cinematic ticket reservation engine. Pick your favorite multiplex, inspect live 3D seat availability, and lock your cinema moments instantly.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <a href="/">Home</a>
+        <a href="/movies?status=now_showing">Now Showing</a>
+        <a href="/movies?status=upcoming">Coming Soon</a>
+        <a href="/movies">All Movies</a>
+      </div>
+      <div class="footer-col">
+        <h4>User Area</h4>
+        <a href="/my-bookings">My Bookings</a>
+        <a href="/login">Sign In</a>
+        <a href="/register">Create Account</a>
+        <a href="/health" target="_blank">API Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Experience</h4>
+        <a href="#">IMAX® 3D Laser</a>
+        <a href="#">Dolby Atmos 7.1</a>
+        <a href="#">4DX Sensory</a>
+        <a href="#">Gold Class VIP</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; <%= new Date().getFullYear() %> IMovies Inc. Built with Express.js &amp; MongoDB.</div>
+      <div class="flex gap-4">
+        <span><i class="fa-solid fa-shield-cat"></i> Secure SSL Checkouts</span>
+        <span><i class="fa-solid fa-bolt"></i> Real-time Seat Locking</span>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="/js/main.js"></script>
+</body>
+</html>
