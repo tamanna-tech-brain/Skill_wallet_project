@@ -201,3 +201,5 @@ To eliminate race conditions when hundreds of users view the same blockbuster pr
 3. Locks automatically expire after 10 minutes via MongoDB TTL indexes and middleware checks.
 
 # Skill_wallet_project
+#   M o v i e _ T i c k e t - B o o k i n g  
+ 
